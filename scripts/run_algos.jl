@@ -1,4 +1,4 @@
-# julia scripts/run_algo.jl <dataset> <algo> <Lipschitz> <gamma> <oldLipschitz> <K>
+# julia scripts/run_algo.jl <dataset> <algo> <Lipschitz> <gamma> (<oldLipschitz> <K>)
 
 using CSV
 using Dates
@@ -37,11 +37,11 @@ DATASET_INFO = Dict([
 ])
 
 # Parameters
-outputdir = "./run_results"
-# outputdir = "./run_results-lasso_ridge"
+# outputdir = "./run_results"
+outputdir = "./run_results-lasso_ridge"
 # outputdir = "./run_results-lasso"
 elasticnet_λ₁ = 1e-4
-elasticnet_λ₂ = 0.0
+elasticnet_λ₂ = 1e-4
 
 dataset = ARGS[1]
 d, n = DATASET_INFO[dataset]
@@ -55,7 +55,7 @@ filepath = "../data/libsvm/$(dataset)"
 
 # Exit criterion
 maxiter = 1e12
-maxtime = 60
+maxtime = 1800
 targetaccuracy = 1e-7
 loggingfreq = 100
 exitcriterion = ExitCriterion(maxiter, maxtime, targetaccuracy, loggingfreq)

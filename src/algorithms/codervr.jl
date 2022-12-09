@@ -99,7 +99,7 @@ function codervr(
         x_out_sum .+= a * x̃
 
         iteration += m * K
-        if iteration % (m * exitcriterion.loggingfreq) == 0
+        if iteration % (m * problem.operator_func.n * exitcriterion.loggingfreq) == 0
             x_out = 1 / A * x_out_sum
 
             elapsedtime = time() - starttime
