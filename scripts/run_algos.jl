@@ -1,4 +1,4 @@
-# julia scripts/run_algo.jl <dataset> <Lipschitz> <gamma> <algo>
+# julia scripts/run_algo.jl <dataset> <algo> <Lipschitz> <gamma> <oldLipschitz> <K>
 
 using CSV
 using Dates
@@ -21,6 +21,7 @@ include("../src/algorithms/utils/exitcriterion.jl")
 include("../src/algorithms/utils/results.jl")
 
 include("../src/algorithms/coder.jl")
+include("../src/algorithms/codervr.jl")
 include("../src/algorithms/rapd.jl")
 include("../src/algorithms/pccm.jl")
 include("../src/algorithms/prcm.jl")
@@ -37,9 +38,10 @@ DATASET_INFO = Dict([
 
 # Parameters
 outputdir = "./run_results"
-# outputdir = "./run_results_str"
+# outputdir = "./run_results-lasso_ridge"
+# outputdir = "./run_results-lasso"
 elasticnet_λ₁ = 1e-4
-elasticnet_λ₂ = 1e-4
+elasticnet_λ₂ = 0.0
 
 dataset = ARGS[1]
 d, n = DATASET_INFO[dataset]
@@ -48,12 +50,12 @@ d, n = DATASET_INFO[dataset]
 if !haskey(DATASET_INFO, dataset)
     throw(ArgumentError("Invalid dataset name supplied."))
 end
-filepath = "../data/$(dataset)"
+filepath = "../data/libsvm/$(dataset)"
 
 
 # Exit criterion
 maxiter = 1e12
-maxtime = 5
+maxtime = 60
 targetaccuracy = 1e-7
 loggingfreq = 100
 exitcriterion = ExitCriterion(maxiter, maxtime, targetaccuracy, loggingfreq)
@@ -61,10 +63,10 @@ exitcriterion = ExitCriterion(maxiter, maxtime, targetaccuracy, loggingfreq)
 
 # Output
 timestamp = Dates.format(Dates.now(), "yyyy-mm-dd_HH-MM-SS-sss")
-# loggingfilename = "$(outputdir)/$(dataset)-$(join(ARGS[3:end], "_"))-execution_log-$(timestamp).txt"
+# loggingfilename = "$(outputdir)/$(dataset)-$(ARGS[2])-$(join(ARGS[3:end], "_"))-execution_log-$(timestamp).txt"
 # io = open(loggingfilename, "w+")
 # logger = SimpleLogger(io)
-outputfilename = "$(outputdir)/$(dataset)-$(join(ARGS[2:4], "_"))-output-$(timestamp).jld2"
+outputfilename = "$(outputdir)/$(dataset)-$(ARGS[2])-$(join(ARGS[3:end], "_"))-output-$(timestamp).jld2"
 
 
 # Problem instance instantiation
@@ -86,11 +88,11 @@ problem = GMVIProblem(F, g)
 @info "--------------------------------------------------"
 
 
-if ARGS[4] == "CODER"
+if ARGS[2] == "CODER"
     @info "Running CODER..."
 
-    L = parse(Float64, ARGS[2])
-    γ = parse(Float64, ARGS[3])
+    L = parse(Float64, ARGS[3])
+    γ = parse(Float64, ARGS[4])
     @info "Setting L=$(L), γ=$(γ)"
 
     coder_params = CODERParams(L, γ)
@@ -98,11 +100,24 @@ if ARGS[4] == "CODER"
     save_object(outputfilename, output_coder)
     @info "output saved to $(outputfilename)"
 
+elseif ARGS[2] == "CODERVR"
+    @info "Running CODERVR..."
 
-elseif ARGS[4] == "RAPD"
+    L = parse(Float64, ARGS[3])
+    γ = parse(Float64, ARGS[4])
+    M = parse(Float64, ARGS[5])
+    K = parse(Float64, ARGS[6])
+    @info "Setting L=$(L), γ=$(γ), M=$(M), K=$(K)"
+
+    codervr_params = CODERVRParams(L, M, γ, K)
+    output_coder = codervr(problem, exitcriterion, codervr_params)
+    save_object(outputfilename, output_coder)
+    @info "output saved to $(outputfilename)"
+
+elseif ARGS[2] == "RAPD"
     @info "Running RAPD"
 
-    L = parse(Float64, ARGS[2])
+    L = parse(Float64, ARGS[3])
     @info "Setting L=$(L)"
 
     # TODO: Move these inputs into algo
@@ -115,11 +130,11 @@ elseif ARGS[4] == "RAPD"
     save_object(outputfilename, output_rapd)
     @info "output saved to $(outputfilename)"
 
-elseif ARGS[4] == "PCCM"
+elseif ARGS[2] == "PCCM"
     @info "Running PCCM..."
 
-    L = parse(Float64, ARGS[2])
-    γ = parse(Float64, ARGS[3])
+    L = parse(Float64, ARGS[3])
+    γ = parse(Float64, ARGS[4])
     @info "Setting L=$(L), γ=$(γ)"
 
     pccm_params = PCCMParams(L, γ)
@@ -127,11 +142,11 @@ elseif ARGS[4] == "PCCM"
     save_object(outputfilename, output_pccm)
     @info "output saved to $(outputfilename)"
 
-elseif ARGS[4] == "PRCM"
+elseif ARGS[2] == "PRCM"
     @info "Running PRCM..."
 
-    L = parse(Float64, ARGS[2])
-    γ = parse(Float64, ARGS[3])
+    L = parse(Float64, ARGS[3])
+    γ = parse(Float64, ARGS[4])
     @info "Setting L=$(L), γ=$(γ)"
 
     prcm_params = PRCMParams(L, γ)
@@ -142,8 +157,3 @@ elseif ARGS[4] == "PRCM"
 else
     @info "Wrong algorithm name supplied"
 end
-
-
-
-
-
