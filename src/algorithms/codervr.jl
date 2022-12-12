@@ -59,7 +59,7 @@ function codervr(
         end
         A = A₋₁ + a
 
-        for _ in 1:K
+        for k in 1:K
             x₀₋₁ .= x₀₀; y₀₋₁ .= y₀₀; z₀₋₁ .= z₀₀
 
             y₀₀ .= x₀₋₁
@@ -86,7 +86,7 @@ function codervr(
                 z₀₀[j] = z₀₋₁[j] + a * q₀₀[j]
 
                 # Step 12
-                x₀₀[j] = problem.g_func.prox_opr_block(j, x₀[j] - z₀₀[j] / K, A / K)
+                x₀₀[j] = problem.g_func.prox_opr_block(j, x₀[j] - z₀₀[j] / K, A₋₁ + a * k / K)
             end
             x̂_sum .+= β / (β + γ) * x₀₋₁ + γ / (β + γ) * x₀₀
             x̃_sum .+= x₀₀
