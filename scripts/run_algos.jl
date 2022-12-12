@@ -38,13 +38,21 @@ DATASET_INFO = Dict([
 
 # Parameters
 # outputdir = "./run_results"
-outputdir = "./run_results-lasso_ridge"
-# outputdir = "./run_results-lasso"
+
+# outputdir = "./run_results-lasso_ridge"
+# elasticnet_λ₁ = 1e-4
+# elasticnet_λ₂ = 1e-4
+
+outputdir = "./run_results-lasso"
 elasticnet_λ₁ = 1e-4
-elasticnet_λ₂ = 1e-4
+elasticnet_λ₂ = 0.0
 
 dataset = ARGS[1]
 d, n = DATASET_INFO[dataset]
+
+
+@info "elasticnet_λ₁ = $(elasticnet_λ₁); elasticnet_λ₂ = $(elasticnet_λ₂)"
+@info "d = $(d); n = $(n)"
 
 
 if !haskey(DATASET_INFO, dataset)
@@ -55,7 +63,7 @@ filepath = "../data/libsvm/$(dataset)"
 
 # Exit criterion
 maxiter = 1e12
-maxtime = 1800
+maxtime = 3600 * 6
 targetaccuracy = 1e-7
 loggingfreq = 100
 exitcriterion = ExitCriterion(maxiter, maxtime, targetaccuracy, loggingfreq)
@@ -66,7 +74,7 @@ timestamp = Dates.format(Dates.now(), "yyyy-mm-dd_HH-MM-SS-sss")
 # loggingfilename = "$(outputdir)/$(dataset)-$(ARGS[2])-$(join(ARGS[3:end], "_"))-execution_log-$(timestamp).txt"
 # io = open(loggingfilename, "w+")
 # logger = SimpleLogger(io)
-outputfilename = "$(outputdir)/$(dataset)-$(ARGS[2])-$(join(ARGS[3:end], "_"))-output-$(timestamp).jld2"
+outputfilename = "$(outputdir)/$(dataset)-$(ARGS[2])-$(join(ARGS[3:end], "_"))-$(elasticnet_λ₁)_$(elasticnet_λ₂)-output-$(timestamp).jld2"
 
 
 # Problem instance instantiation
@@ -110,8 +118,8 @@ elseif ARGS[2] == "CODERVR"
     @info "Setting L=$(L), γ=$(γ), M=$(M), K=$(K)"
 
     codervr_params = CODERVRParams(L, M, γ, K)
-    output_coder = codervr(problem, exitcriterion, codervr_params)
-    save_object(outputfilename, output_coder)
+    output_vrcoder = codervr(problem, exitcriterion, codervr_params)
+    save_object(outputfilename, output_vrcoder)
     @info "output saved to $(outputfilename)"
 
 elseif ARGS[2] == "RAPD"
