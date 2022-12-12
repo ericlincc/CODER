@@ -32,6 +32,7 @@ function codervr(
     z₀₀, z₀₋₁, q₀₀ = zeros(problem.d), zeros(problem.d), zeros(problem.d)
     x̂_sum, x̃_sum, x_out_sum = zeros(problem.d), zeros(problem.d), zeros(problem.d)
     m = problem.d  # Assume that each block is simply a coordinate for now
+    n = 1:problem.operator_func.n
     
     
     # Run init
@@ -70,7 +71,7 @@ function codervr(
                 end
 
                 # Step 9
-                t = rand(1:problem.operator_func.n)
+                t = rand(n)
 
                 # Step 10
                 # q₀₀[j] = F_y₀₀[t][j] - F_x̂₋₁[t][j] + μ[j] + a₀₋₁ / a * (F_x₀₋₁[t][j] - F_y₀₋₁[t][j]) + β * (x₀₋₁[j] - x̂₋₁[j])
