@@ -61,13 +61,17 @@ function codervr(
         A = A₋₁ + a
 
         for k in 1:K
-            x₀₋₁ .= x₀₀; y₀₋₁ .= y₀₀; z₀₋₁ .= z₀₀
+            y₀₋₁ .= x₀₋₁
+
+            # y₀₋₁ .= y₀₀; 
+            x₀₋₁ .= x₀₀; z₀₋₁ .= z₀₀
 
             y₀₀ .= x₀₋₁
             for j in 1:m
                 # Step 8
                 if j >= 2
                     y₀₀[j-1] = x₀₀[j-1] 
+                    y₀₋₁[j-1] = x₀₋₁[j-1]
                 end
 
                 # Step 9
